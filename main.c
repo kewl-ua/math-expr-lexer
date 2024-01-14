@@ -16,7 +16,7 @@ int main() {
     table.addRow(&table, &row);
     table.addRow(&table, &row2);
 
-    printHashTable(&table);
+    // printHashTable(&table);
 
     return 0;
 }

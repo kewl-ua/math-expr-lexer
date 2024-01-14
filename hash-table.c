@@ -14,8 +14,22 @@ HashTableRow makeHashTableRow(char *key, char *value) {
     return row;
 }
 
-void addRow(HashTable *table, HashTableRow *row) {
-    table->rows[table->size++] = row;
+TableOperation addRow(HashTable *table, HashTableRow *row) {
+    size_t hash = makeHash(row->key);
+
+    table->rows[hash] = row;
+    table->size++;
+
+    return SUCCESS; 
+}
+
+HashTableRow* getRow(HashTable *table, char* key) {
+    size_t hash = makeHash(key);
+    HashTableRow* row; 
+
+    row = table->rows[hash];
+
+    return row;
 }
 
 HashTable makeHashTable() {
@@ -40,6 +54,6 @@ void printHashTable(HashTable *table) {
     }
 }
 
-size_t makeHash(char* key) {
-    return *key % 10;
+size_t makeHash(char *key) {
+    return *(key) % 10;
 }

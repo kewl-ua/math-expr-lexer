@@ -1,6 +1,8 @@
-#define KEY_SIZE 20
+#define KEY_SIZE 10
 #define VALUE_SIZE 64
 #define TABLE_SIZE 10
+
+typedef enum { NOT_FOUND = -1, SUCCESS } TableOperation;
 
 typedef struct {
     char key[KEY_SIZE];
@@ -10,7 +12,8 @@ typedef struct {
 struct hashTable {
     size_t size;
     HashTableRow *rows[TABLE_SIZE];
-    void (*addRow)(struct hashTable*, HashTableRow*); 
+    TableOperation (*addRow)(struct hashTable*, HashTableRow*); 
+    HashTableRow* (*getRow)(struct hashTable*, char*);
 };
 
 typedef struct hashTable HashTable;
