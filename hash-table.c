@@ -1,8 +1,12 @@
 #include "hash-table.h"
 
 // API
-HashTable* createHashtable(void) {
+HashTable* createHashTable(void) {
     HashTable *ht = calloc(1, sizeof(HashTable));
+
+    ht->insert = insert;
+    ht->search = search;
+    ht->delete = delete;
     
     if (!ht) {
         perror("HashTable: Memory allocation error.");
@@ -35,9 +39,7 @@ NodeKey hash(int key) {
 
 TableStatus insert(HashTable *ht, NodeKey key, char* value) {
     TableIndex index = hash(key);
-    Node *node = ht->array[index];
-
-    node = malloc(sizeof(Node));
+    Node *node = malloc(sizeof(Node));
     
     if (!node) {
         perror("HashTable (insert): Memory allocation error.");
@@ -46,7 +48,9 @@ TableStatus insert(HashTable *ht, NodeKey key, char* value) {
 
     node->key = key;
     node->value = strdup(value);
-    node->next = ht->array[index];
+    node->next = ht->array[index]; 
+
+    ht->array[index] = node;
 
     return INSERT_SUCCESS;
 }
@@ -55,11 +59,37 @@ Node* search(HashTable *ht, NodeKey key) {
     TableIndex index = hash(key);
     Node *node = ht->array[index];
 
-    while (node->next != NULL) {
+    while (node != NULL) {
         if (node->key == key) return node;
 
         node = node->next;
     }
 
     return NULL;
+}
+
+TableStatus delete(HashTable *ht, NodeKey key) {
+    TableIndex index = hash(key);
+    Node *prev = NULL;
+    Node *current = ht->array[index];
+
+    while (current != NULL) {
+        if (current->key == key) {
+            if (prev == NULL) {
+                ht->array[index] = current->next;
+            } else {
+                prev->next = current->next;
+            }
+
+            free(current->value);
+            free(current);
+
+            return DELETE_SUCCESS;
+        }
+
+        prev = current;
+        current = current->next;
+    }
+
+    return DELETE_FAIL;
 }

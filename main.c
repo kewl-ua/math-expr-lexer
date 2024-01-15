@@ -10,15 +10,13 @@ int main() {
     printf("Parsed number: %f.\n", n);
     printf("Test: 3.1415 == PI is %d.\n\n", n == 3.1415);
 
-    HashTable *ht = createHashtable();
+    HashTable *ht = createHashTable();
 
-    ht->insert(ht, "name", "Artem");
+    ht->insert(ht, 12, "Artem");
 
-    Node *node = ht->search(ht, "name");
+    Node *node = ht->search(ht, 12);
 
-    if (node && node->value) {
-        printf("Name: %s.\n", node->value);
-    }
+    printf("Name: %s.\n", node->value);
 
     freeHashTable(ht);
 

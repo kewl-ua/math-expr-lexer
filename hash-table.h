@@ -35,7 +35,7 @@ typedef struct hashtable {
 NodeKey hash(int);
 
 // API
-HashTable* createHashtable(void);
+HashTable* createHashTable(void);
 void freeHashTable(HashTable *ht);
 
 TableStatus insert(HashTable*, NodeKey, char*);
