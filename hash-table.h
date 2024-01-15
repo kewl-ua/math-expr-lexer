@@ -1,26 +1,45 @@
-#define KEY_SIZE 10
-#define VALUE_SIZE 64
-#define TABLE_SIZE 10
+#ifndef HASH_TABLE_H
+#define HASH_TABLE_H
 
-typedef enum { NOT_FOUND = -1, SUCCESS } TableOperation;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-typedef struct {
-    char key[KEY_SIZE];
-    char value[VALUE_SIZE];
-} HashTableRow;
+#define TABLE_SIZE 100
 
-struct hashTable {
-    size_t size;
-    HashTableRow *rows[TABLE_SIZE];
-    TableOperation (*addRow)(struct hashTable*, HashTableRow*); 
-    HashTableRow* (*getRow)(struct hashTable*, char*);
-};
+typedef int NodeKey;
+typedef size_t TableIndex;
+typedef unsigned int TableHash;
 
-typedef struct hashTable HashTable;
+typedef enum {
+    INSERT_FAIL = -2,
+    DELETE_FAIL,
+    DELETE_SUCCESS,
+    INSERT_SUCCESS
+} TableStatus;
+
+typedef struct node {
+    NodeKey key;
+    char *value;
+    struct node *next;
+} Node; 
+
+typedef struct hashtable {
+    Node *array[TABLE_SIZE];
+    
+    TableStatus (*insert)(struct hashtable*, NodeKey, char*);
+    Node* (*search)(struct hashtable*, NodeKey);
+    TableStatus (*delete)(struct hashtable*, NodeKey);
+} HashTable;
+
+NodeKey hash(int);
 
 // API
-HashTable makeHashTable();
-HashTableRow makeHashTableRow(char*, char*);
+HashTable* createHashtable(void);
+void freeHashTable(HashTable *ht);
 
-void printHashTable(HashTable*);
-size_t makeHash(char*);
+TableStatus insert(HashTable*, NodeKey, char*);
+Node* search(HashTable*, NodeKey);
+TableStatus delete(HashTable*, NodeKey);
+
+#endif

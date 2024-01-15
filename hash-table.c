@@ -1,59 +1,65 @@
-#include <stdio.h>
-#include <string.h>
 #include "hash-table.h"
 
-HashTableRow makeHashTableRow(char *key, char *value) {
-    HashTableRow row;
-
-    strncpy(row.key, key, KEY_SIZE - 1);
-    row.key[KEY_SIZE] = '\0';
-
-    strncpy(row.value, value, VALUE_SIZE - 1);
-    row.value[VALUE_SIZE] = '\0';
-
-    return row;
-}
-
-TableOperation addRow(HashTable *table, HashTableRow *row) {
-    size_t hash = makeHash(row->key);
-
-    table->rows[hash] = row;
-    table->size++;
-
-    return SUCCESS; 
-}
-
-HashTableRow* getRow(HashTable *table, char* key) {
-    size_t hash = makeHash(key);
-    HashTableRow* row; 
-
-    row = table->rows[hash];
-
-    return row;
-}
-
-HashTable makeHashTable() {
-    HashTable table;
-
-    table.size = 0;
-    table.addRow = addRow;
+// API
+HashTable* createHashtable(void) {
+    HashTable *ht = calloc(1, sizeof(HashTable));
     
-    return table;
-}
-
-void printHashTable(HashTable *table) {
-    size_t i;
-    HashTableRow *row;
-
-    printf("#\t Key\t Value\n");
-
-    for (i = 0; i < table->size; i++) {
-        row = table->rows[i];
-
-        printf("%d\t %s\t %s\n", i, row->key, row->value);
+    if (!ht) {
+        perror("HashTable: Memory allocation error.");
+        return NULL;
     }
 }
 
-size_t makeHash(char *key) {
-    return *(key) % 10;
+void freeHashTable(HashTable *ht) {
+    if (!ht) return;
+
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        Node *list = ht->array[i];
+
+        while (list != NULL) {
+            Node *tmp = list;
+
+            list = list->next;
+
+            free(tmp->value);
+            free(tmp);
+        }
+    }
+
+    free(ht);
+}
+
+NodeKey hash(int key) {
+    return key % TABLE_SIZE;
+}
+
+TableStatus insert(HashTable *ht, NodeKey key, char* value) {
+    TableIndex index = hash(key);
+    Node *node = ht->array[index];
+
+    node = malloc(sizeof(Node));
+    
+    if (!node) {
+        perror("HashTable (insert): Memory allocation error.");
+        return INSERT_FAIL;
+    }
+
+    node->key = key;
+    node->value = strdup(value);
+    node->next = ht->array[index];
+
+    return INSERT_SUCCESS;
+}
+
+Node* search(HashTable *ht, NodeKey key) {
+    TableIndex index = hash(key);
+    Node *node = ht->array[index];
+
+    while (node->next != NULL) {
+        if (node->key == key) return node;
+
+        node = node->next;
+    }
+
+    return NULL;
 }

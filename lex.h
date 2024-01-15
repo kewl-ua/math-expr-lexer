@@ -1,3 +1,6 @@
+#ifndef LEX_H
+#define LEX_H
+
 #include <stdbool.h>
 
 #define ZERO_CODE 48
@@ -20,3 +23,5 @@ int chToInt(char);
 
 // Parsers
 double parseNumber(char*);
+
+#endif
