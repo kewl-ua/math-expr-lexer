@@ -32,9 +32,9 @@ typedef struct hashtable {
     TableStatus (*delete)(struct hashtable*, NodeKey);
 } HashTable;
 
+// API
 NodeKey hash(int);
 
-// API
 HashTable* createHashTable(void);
 void freeHashTable(HashTable *ht);
 

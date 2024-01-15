@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "lex.h"
 
+#include "lex.h"
 #include "hash-table.h"
 
 int main() {
