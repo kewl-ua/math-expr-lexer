@@ -7,16 +7,27 @@ A simple lexer/parser for mathematical expressions, implemented in pure C.
 math-expr-lexer/
 
 ├── bin/          # Executable binaries
+
 ├── build/        # Temporary build files
+
 ├── docs/         # Documentation
+
 ├── include/      # Header files (.h)
+
 ├── lib/          # External libraries
+
 ├── scripts/      # Automation scripts
+
 ├── src/          # Source code (.c)
+
 ├── tests/        # Unit and integration tests
+
 ├── config.h      # Project configuration
+
 ├── LICENSE       # Project license
+
 ├── README.md     # This file
+
 └── CMakeLists.txt # CMake build configuration
 
 ## Requirements
