@@ -5,6 +5,7 @@ A simple lexer/parser for mathematical expressions, implemented in pure C.
 ## Project Structure
 
 math-expr-lexer/
+
 ├── bin/          # Executable binaries
 ├── build/        # Temporary build files
 ├── docs/         # Documentation
