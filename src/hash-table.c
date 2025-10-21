@@ -3,28 +3,33 @@
 // API
 HashTable* createHashTable(void) {
     HashTable *ht = calloc(1, sizeof(HashTable));
-
-    ht->insert = insert;
-    ht->search = search;
-    ht->delete = delete;
-    
     if (!ht) {
         perror("HashTable: Memory allocation error.");
         return NULL;
     }
+
+    ht->insert = insert;
+    ht->search = search;
+    ht->delete = delete;
+
+    for (size_t i = 0; i < TABLE_SIZE; ++i) {
+        ht->array[i] = NULL;
+    }
+
+    return ht;
 }
 
 void freeHashTable(HashTable *ht) {
-    if (!ht) return;
+    if (!ht) {
+        return;
+    }
 
     for (int i = 0; i < TABLE_SIZE; i++) {
         Node *list = ht->array[i];
 
         while (list != NULL) {
             Node *tmp = list;
-
             list = list->next;
-
             free(tmp->value);
             free(tmp);
         }
@@ -38,9 +43,13 @@ NodeKey hash(int key) {
 }
 
 TableStatus insert(HashTable *ht, NodeKey key, char* value) {
+    if (!ht || !value) {
+        return INSERT_FAIL;
+    }
+
     TableIndex index = hash(key);
     Node *node = malloc(sizeof(Node));
-    
+
     if (!node) {
         perror("HashTable (insert): Memory allocation error.");
         return INSERT_FAIL;
@@ -48,7 +57,7 @@ TableStatus insert(HashTable *ht, NodeKey key, char* value) {
 
     node->key = key;
     node->value = strdup(value);
-    node->next = ht->array[index]; 
+    node->next = ht->array[index];
 
     ht->array[index] = node;
 
@@ -56,11 +65,17 @@ TableStatus insert(HashTable *ht, NodeKey key, char* value) {
 }
 
 Node* search(HashTable *ht, NodeKey key) {
+    if (!ht) {
+        return NULL;
+    }
+
     TableIndex index = hash(key);
     Node *node = ht->array[index];
 
     while (node != NULL) {
-        if (node->key == key) return node;
+        if (node->key == key) {
+            return node;
+        }
 
         node = node->next;
     }
@@ -69,6 +84,10 @@ Node* search(HashTable *ht, NodeKey key) {
 }
 
 TableStatus delete(HashTable *ht, NodeKey key) {
+    if (!ht) {
+        return DELETE_FAIL;
+    }
+
     TableIndex index = hash(key);
     Node *prev = NULL;
     Node *current = ht->array[index];
