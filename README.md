@@ -73,6 +73,30 @@ OPERATOR     -> *
 ...
 ```
 
+## Library usage
+
+Client code should include `math_expr/lexer.h`, initialise a `math_expr_token_array`, and pass it
+to `math_expr_lex_expression`. Remember to clean up with `math_expr_token_array_deinit` when the
+token array is no longer needed.
+
+```c
+#include "math_expr/lexer.h"
+
+int main(void) {
+    math_expr_token_array tokens;
+    math_expr_token_array_init(&tokens);
+
+    if (math_expr_lex_expression("2 * (x + 1)", &tokens) != 0) {
+        return 1;
+    }
+
+    /* consume tokens->data here */
+
+    math_expr_token_array_deinit(&tokens);
+    return 0;
+}
+```
+
 ## Cleaning up
 
 To remove build artefacts, delete the `build/` and `bin/` directories:

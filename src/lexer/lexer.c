@@ -42,25 +42,25 @@ static int is_space_char(int c)
     return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
 }
 
-static void token_list_reserve(TokenList *list)
+static void token_array_reserve(math_expr_token_array *array)
 {
-    if (!list) {
+    if (!array) {
         return;
     }
 
-    if (list->size < list->capacity) {
+    if (array->size < array->capacity) {
         return;
     }
 
-    size_t new_capacity = list->capacity == 0 ? kInitialTokenCapacity : list->capacity * 2U;
-    Token *new_data = (Token *)realloc(list->data, new_capacity * sizeof(*list->data));
+    size_t new_capacity = array->capacity == 0 ? kInitialTokenCapacity : array->capacity * 2U;
+    math_expr_token *new_data = (math_expr_token *)realloc(array->data, new_capacity * sizeof(*array->data));
     if (!new_data) {
         perror("math_expr_lexer: realloc");
         return;
     }
 
-    list->data = new_data;
-    list->capacity = new_capacity;
+    array->data = new_data;
+    array->capacity = new_capacity;
 }
 
 static char *copy_range(const char *start, size_t length)
@@ -78,93 +78,138 @@ static char *copy_range(const char *start, size_t length)
     return buffer;
 }
 
-static void token_list_append(TokenList *list, TokenType type, const char *start, size_t length, double value)
+static int token_array_append(math_expr_token_array *array,
+                             math_expr_token_type type,
+                             const char *start,
+                             size_t length,
+                             double value)
 {
-    if (!list) {
-        return;
+    if (!array) {
+        return -1;
     }
 
-    token_list_reserve(list);
-    if (list->capacity == 0U || list->size >= list->capacity) {
-        return;
+    token_array_reserve(array);
+    if (array->capacity == 0U || array->size >= array->capacity) {
+        return -1;
     }
 
     char *lexeme = copy_range(start, length);
     if (!lexeme) {
-        return;
+        return -1;
     }
 
-    Token *token = &list->data[list->size++];
+    math_expr_token *token = &array->data[array->size++];
     token->type = type;
     token->lexeme = lexeme;
     token->number = value;
+    return 0;
 }
 
-static void append_space(TokenList *tokens, const char *start, const char *cursor)
+static int append_space(math_expr_token_array *tokens, const char *start, const char *cursor)
 {
-    token_list_append(tokens, TOKEN_SPACE, start, (size_t)(cursor - start), 0.0);
+    return token_array_append(tokens,
+                              MATH_EXPR_TOKEN_SPACE,
+                              start,
+                              (size_t)(cursor - start),
+                              0.0);
 }
 
-static void append_number(TokenList *tokens, const char *start, char **endptr)
+static int append_number(math_expr_token_array *tokens, const char *start, char **endptr)
 {
     errno = 0;
-    double value = strtod(start, endptr);
-    if (start == *endptr) {
-        return;
+    char *local_endptr = NULL;
+    double value = strtod(start, &local_endptr);
+
+    if (endptr) {
+        *endptr = local_endptr;
+    }
+
+    if (start == local_endptr) {
+        return 1;
     }
 
     if (errno != 0) {
         perror("math_expr_lexer: strtod");
     }
 
-    token_list_append(tokens, TOKEN_NUMBER, start, (size_t)(*endptr - start), value);
+    if (token_array_append(tokens,
+                           MATH_EXPR_TOKEN_NUMBER,
+                           start,
+                           (size_t)(local_endptr - start),
+                           value) != 0) {
+        return -1;
+    }
+
+    return 0;
 }
 
-static void append_identifier(TokenList *tokens, const char *start, const char *cursor)
+static int append_identifier(math_expr_token_array *tokens, const char *start, const char *cursor)
 {
-    token_list_append(tokens, TOKEN_IDENTIFIER, start, (size_t)(cursor - start), 0.0);
+    return token_array_append(tokens,
+                              MATH_EXPR_TOKEN_IDENTIFIER,
+                              start,
+                              (size_t)(cursor - start),
+                              0.0);
 }
 
-static void append_operator(TokenList *tokens, const char *start)
+static int append_operator(math_expr_token_array *tokens, const char *start)
 {
-    token_list_append(tokens, TOKEN_OPERATOR, start, 1U, 0.0);
+    return token_array_append(tokens,
+                              MATH_EXPR_TOKEN_OPERATOR,
+                              start,
+                              1U,
+                              0.0);
 }
 
-void token_list_init(TokenList *list)
+void math_expr_token_array_init(math_expr_token_array *array)
 {
-    if (!list) {
+    if (!array) {
         return;
     }
 
-    list->data = NULL;
-    list->size = 0U;
-    list->capacity = 0U;
+    array->data = NULL;
+    array->size = 0U;
+    array->capacity = 0U;
 }
 
-void token_list_free(TokenList *list)
+void math_expr_token_array_clear(math_expr_token_array *array)
 {
-    if (!list) {
+    if (!array) {
         return;
     }
 
-    for (size_t i = 0; i < list->size; ++i) {
-        free(list->data[i].lexeme);
-        list->data[i].lexeme = NULL;
+    for (size_t i = 0; i < array->size; ++i) {
+        free(array->data[i].lexeme);
+        array->data[i].lexeme = NULL;
     }
 
-    free(list->data);
-    list->data = NULL;
-    list->size = 0U;
-    list->capacity = 0U;
+    array->size = 0U;
 }
 
-TokenList lex_expression(const char *expression)
+void math_expr_token_array_deinit(math_expr_token_array *array)
 {
-    TokenList tokens;
-    token_list_init(&tokens);
+    if (!array) {
+        return;
+    }
+
+    math_expr_token_array_clear(array);
+    free(array->data);
+    array->data = NULL;
+    array->capacity = 0U;
+}
+
+int math_expr_lex_expression(const char *expression, math_expr_token_array *out_tokens)
+{
+    if (!out_tokens) {
+        return -1;
+    }
+
+    if (out_tokens->data != NULL || out_tokens->size != 0U || out_tokens->capacity != 0U) {
+        math_expr_token_array_clear(out_tokens);
+    }
 
     if (!expression) {
-        return tokens;
+        return 0;
     }
 
     const char *cursor = expression;
@@ -177,17 +222,22 @@ TokenList lex_expression(const char *expression)
             while (*cursor != '\0' && is_space_char((unsigned char)*cursor)) {
                 ++cursor;
             }
-            append_space(&tokens, start, cursor);
+            if (append_space(out_tokens, start, cursor) != 0) {
+                goto error;
+            }
             continue;
         }
 
         if (isdigit(current) || (*cursor == '.' && isdigit((unsigned char)*(cursor + 1)))) {
             const char *start = cursor;
             char *endptr = NULL;
-            append_number(&tokens, start, &endptr);
-            if (!endptr || endptr == start) {
+            int result = append_number(out_tokens, start, &endptr);
+            if (result == 1 || !endptr || endptr == start) {
                 ++cursor;
                 continue;
+            }
+            if (result != 0) {
+                goto error;
             }
             cursor = endptr;
             continue;
@@ -198,12 +248,16 @@ TokenList lex_expression(const char *expression)
             while (*cursor != '\0' && is_identifier_part((unsigned char)*cursor)) {
                 ++cursor;
             }
-            append_identifier(&tokens, start, cursor);
+            if (append_identifier(out_tokens, start, cursor) != 0) {
+                goto error;
+            }
             continue;
         }
 
         if (is_operator_char(current)) {
-            append_operator(&tokens, cursor);
+            if (append_operator(out_tokens, cursor) != 0) {
+                goto error;
+            }
             ++cursor;
             continue;
         }
@@ -212,19 +266,23 @@ TokenList lex_expression(const char *expression)
         ++cursor;
     }
 
-    return tokens;
+    return 0;
+
+error:
+    math_expr_token_array_deinit(out_tokens);
+    return -1;
 }
 
-const char *token_type_to_string(TokenType type)
+const char *math_expr_token_type_to_string(math_expr_token_type type)
 {
     switch (type) {
-    case TOKEN_IDENTIFIER:
+    case MATH_EXPR_TOKEN_IDENTIFIER:
         return "IDENTIFIER";
-    case TOKEN_OPERATOR:
+    case MATH_EXPR_TOKEN_OPERATOR:
         return "OPERATOR";
-    case TOKEN_NUMBER:
+    case MATH_EXPR_TOKEN_NUMBER:
         return "NUMBER";
-    case TOKEN_SPACE:
+    case MATH_EXPR_TOKEN_SPACE:
         return "SPACE";
     default:
         return "UNKNOWN";
