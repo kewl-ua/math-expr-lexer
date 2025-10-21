@@ -13,3 +13,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 
 add_executable(math_expr_lexer ${SOURCES})
 
+target_link_libraries(math_expr_lexer m)
+

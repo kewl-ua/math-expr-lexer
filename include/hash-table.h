@@ -22,11 +22,11 @@ typedef struct node {
     NodeKey key;
     char *value;
     struct node *next;
-} Node; 
+} Node;
 
 typedef struct hashtable {
     Node *array[TABLE_SIZE];
-    
+
     TableStatus (*insert)(struct hashtable*, NodeKey, char*);
     Node* (*search)(struct hashtable*, NodeKey);
     TableStatus (*delete)(struct hashtable*, NodeKey);
