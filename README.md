@@ -73,6 +73,18 @@ Run the executable from the command line:
 ./bin/math_expr_lexer
 ```
 
+Example output:
+
+```
+Expression: 3.1415 * radius^2 + sin(theta / 2)
+Tokens:
+
+NUMBER   -> 3.1415     (value = 3.1415)
+SPACE    -> [space]
+OPERATOR -> *
+...
+```
+
 ## Clean
 
 To clean the build artifacts, simply remove the contents of the build and bin directories:

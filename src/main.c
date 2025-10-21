@@ -1,25 +1,35 @@
 #include <stdio.h>
 
 #include "lex.h"
-#include "hash-table.h"
 
-int main() {
-    char *PI = "3.1415";
-    double n = parseNumber(PI);
+static void printTokens(const TokenList *tokens) {
+    for (size_t i = 0; i < tokens->count; ++i) {
+        const Token *token = &tokens->data[i];
 
-    printf("Parsed number: %f.\n", n);
-    printf("Test: 3.1415 == PI is %d.\n\n", n == 3.1415);
+        switch (token->type) {
+            case NUMBER:
+                printf("%-8s -> %-10s (value = %g)\n", tokenTypeToString(token->type), token->lexeme, token->number);
+                break;
+            case SPACE:
+                printf("%-8s -> [space]\n", tokenTypeToString(token->type));
+                break;
+            default:
+                printf("%-8s -> %s\n", tokenTypeToString(token->type), token->lexeme);
+                break;
+        }
+    }
+}
 
-    HashTable *ht = createHashTable();
+int main(void) {
+    const char *expression = "3.1415 * radius^2 + sin(theta / 2)";
 
-    ht->insert(ht, 12, "Artem");
+    TokenList tokens = lexExpression(expression);
 
-    Node *node = ht->search(ht, 12);
+    printf("Expression: %s\n", expression);
+    printf("Tokens:%c\n", '\n');
+    printTokens(&tokens);
 
-    printf("Name: %s.\n", node->value);
-
-    freeHashTable(ht);
+    freeTokenList(&tokens);
 
     return 0;
 }
-
