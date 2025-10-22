@@ -1,95 +1,105 @@
 # Math Expression Lexer
 
-A simple lexer/parser for mathematical expressions, implemented in pure C.
+A simple lexer for mathematical expressions, implemented in ISO C11. The project is organised
+following common C project practices: public headers live under `include/`, reusable code is built
+as a static library, and the command-line demo is compiled as a thin frontend on top of the
+library.
 
 ## Project Structure
 
+```
 math-expr-lexer/
+├── CMakeLists.txt       # Build configuration
+├── include/
+│   └── math_expr/       # Public headers
+├── src/
+│   ├── app/             # Executable entry points
+│   └── lexer/           # Library implementation files
+├── config.h             # Project configuration stub
+├── LICENSE              # Project license
+└── README.md            # This document
+```
 
-├── bin/          # Executable binaries
-
-├── build/        # Temporary build files
-
-├── docs/         # Documentation
-
-├── include/      # Header files (.h)
-
-├── lib/          # External libraries
-
-├── scripts/      # Automation scripts
-
-├── src/          # Source code (.c)
-
-├── tests/        # Unit and integration tests
-
-├── config.h      # Project configuration
-
-├── LICENSE       # Project license
-
-├── README.md     # This file
-
-└── CMakeLists.txt # CMake build configuration
+Additional scaffolding folders such as `bin/`, `build/`, `docs/`, `scripts/`, `lib/`, and `tests/`
+can be introduced as the project grows. They are not created by default to keep the repository
+clean when unused.
 
 ## Requirements
-C compiler (gcc, clang, or MSVC)
 
-- C compiler (`gcc`, `clang`, or MSVC)
+- ISO C compiler (`gcc`, `clang`, or MSVC`)
 - [CMake](https://cmake.org/download)
-- Make
+- Make or another build tool supported by CMake
 
 ## Building
+
 Create and enter the build directory:
 
-``` bash
-mkdir build
+```bash
+mkdir -p build
 cd build
 ```
 
-Run CMake to configure the build:
+Configure the project:
 
-### For Linux/macOS:
-``` bash
+```bash
 cmake ..
 ```
 
-### For Windows (MinGW/MSYS2):
+Build the targets:
+
 ```bash
-cmake -G "MSYS Makefiles" ..
-```
-
-### Build the project:
-
-``` bash
 cmake --build .
 ```
 
-The executable will appear in the bin directory: bin/math_expr_lexer(.exe)
+The executable will be generated at `bin/math_expr_lexer` (or with `.exe` on Windows).
 
 ## Usage
 
-Run the executable from the command line:
+From the project root after building:
 
-``` bash
+```bash
 ./bin/math_expr_lexer
 ```
 
 Example output:
-
 ```
 Expression: 3.1415 * radius^2 + sin(theta / 2)
-Tokens:
 
-NUMBER   -> 3.1415     (value = 3.1415)
-SPACE    -> [space]
-OPERATOR -> *
+Tokens:
+NUMBER       -> 3.1415     (value = 3.1415)
+SPACE        -> [space]
+OPERATOR     -> *
 ...
 ```
 
-## Clean
+## Library usage
 
-To clean the build artifacts, simply remove the contents of the build and bin directories:
+Client code should include `math_expr/lexer.h`, initialise a `math_expr_token_array`, and pass it
+to `math_expr_lex_expression`. Remember to clean up with `math_expr_token_array_deinit` when the
+token array is no longer needed.
 
-``` bash
-rm -rf build/* bin/*
+```c
+#include "math_expr/lexer.h"
+
+int main(void) {
+    math_expr_token_array tokens;
+    math_expr_token_array_init(&tokens);
+
+    if (math_expr_lex_expression("2 * (x + 1)", &tokens) != 0) {
+        return 1;
+    }
+
+    /* consume tokens->data here */
+
+    math_expr_token_array_deinit(&tokens);
+    return 0;
+}
 ```
 
+## Cleaning up
+
+To remove build artefacts, delete the `build/` and `bin/` directories:
+
+```bash
+rm -rf build bin
+```
