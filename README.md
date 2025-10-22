@@ -62,7 +62,6 @@ From the project root after building:
 ```
 
 Example output:
-
 ```
 Expression: 3.1415 * radius^2 + sin(theta / 2)
 

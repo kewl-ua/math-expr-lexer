@@ -30,3 +30,4 @@ target_link_libraries(math_expr_lexer
 set_target_properties(math_expr_lexer PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin
 )
+
