@@ -58,19 +58,25 @@ The executable will be generated at `bin/math_expr_lexer` (or with `.exe` on Win
 From the project root after building:
 
 ```bash
-./bin/math_expr_lexer
+./bin/math_expr_lexer "3 + 2 - 4 * 5 / sin(30)"
 ```
 
 Example output:
 ```
-Expression: 3.1415 * radius^2 + sin(theta / 2)
+Expression: 3 + 2 - 4 * 5 / sin(30)
 
 Tokens:
-NUMBER       -> 3.1415     (value = 3.1415)
+NUMBER       -> 3          (value = 3)
 SPACE        -> [space]
-OPERATOR     -> *
+OPERATOR     -> +
 ...
+
+Result: -35
 ```
+
+The bundled evaluator understands common arithmetic operations, parentheses, and a handful of
+functions such as `sin`, `cos`, `tan`, `sqrt`, `abs`, `log`, and `pow`. Trigonometric functions
+expect the argument in degrees.
 
 ## Library usage
 

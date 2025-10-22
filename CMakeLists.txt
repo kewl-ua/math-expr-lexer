@@ -8,6 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 add_library(math_expr STATIC
     src/lexer/lexer.c
+    src/lexer/evaluator.c
 )
 
 target_include_directories(math_expr
@@ -17,6 +18,10 @@ target_include_directories(math_expr
 target_compile_features(math_expr
     PUBLIC c_std_11
 )
+
+if(NOT MSVC)
+    target_link_libraries(math_expr PUBLIC m)
+endif()
 
 add_executable(math_expr_lexer
     src/app/main.c
@@ -30,4 +35,3 @@ target_link_libraries(math_expr_lexer
 set_target_properties(math_expr_lexer PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin
 )
-
