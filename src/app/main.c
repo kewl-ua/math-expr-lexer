@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 
+#include "math_expr/evaluator.h"
 #include "math_expr/lexer.h"
 
 static void print_tokens(const math_expr_token_array *tokens)
@@ -24,9 +26,15 @@ static void print_tokens(const math_expr_token_array *tokens)
     }
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
-    const char *expression = "3.1415 * radius^2 + sin(theta / 2)";
+    const char *expression = NULL;
+
+    if (argc > 1) {
+        expression = argv[1];
+    } else {
+        expression = "3 + 2 - 4 * 5 / sin(30)";
+    }
 
     math_expr_token_array tokens;
     math_expr_token_array_init(&tokens);
@@ -37,12 +45,21 @@ int main(void)
     if (math_expr_lex_expression(expression, &tokens) != 0) {
         fputs("Failed to lex expression.\n", stderr);
         math_expr_token_array_deinit(&tokens);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     print_tokens(&tokens);
 
+    double result = 0.0;
+    if (math_expr_evaluate_tokens(&tokens, &result) == 0) {
+        printf("\nResult: %g\n", result);
+    } else {
+        fputs("\nFailed to evaluate expression.\n", stderr);
+        math_expr_token_array_deinit(&tokens);
+        return EXIT_FAILURE;
+    }
+
     math_expr_token_array_deinit(&tokens);
 
-    return 0;
+    return EXIT_SUCCESS;
 }
